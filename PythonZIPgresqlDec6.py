@@ -11,10 +11,9 @@
 
 import psycopg2
 import types 
-import itertools
-import numpy as np
+import logging
 
-binCount = 6
+binCount = 2
 binMax = binCount
 
 
@@ -43,6 +42,8 @@ nbinList = []
 ebinList = [] 
 zbinList = []
 
+# Functions
+
 def initialize():
 	global stepN
 	global stepE
@@ -50,61 +51,77 @@ def initialize():
 	stepN = gapN/binCount
 	stepE = gapE/binCount
 	stepZ = gapZ/binCount
-	print("Initialized")
+	ratioN = str(stepN/gapN)
+	ratioE = str(stepE/gapE)
+	ratioZ = str(stepZ/gapZ)
+	logging.info("Bins Initialized")
+	logging.debug("N step: "+str(stepN)) #, " Ratio of step to gap: " + str(stepN/gapN)
+	logging.debug("E step: "+str(stepE)) #, " Ratio of step to gap: " + str(stepE/gapE))
+	logging.debug("Z step: "+str(stepZ)) #, " Ratio of step to gap: " + str(stepZ/gapZ))
 
 def makeTupleList(binSet, minAA, stepAA, maxAA):
 	if binSet == "n":
-		#print(minAA, stepAA, maxAA)
 		firstCoord = minAA-0.5*stepAA
 		secondCoord = minAA+0.5*stepAA
-		#print(firstCoord, secondCoord)
 		maxvalue = 0
 		while maxvalue <= maxAA+0.51*stepAA:
 			nbinList.append((firstCoord,secondCoord))
 			maxvalue =abs(secondCoord)
 			firstCoord = secondCoord
 			secondCoord = secondCoord+stepAA
-			#print(maxvalue)
-		#print(nbinList[:10])
+		logging.info("nbinList length:"+ str(len(nbinList)))
+		logging.debug("nbin terms"+str(nbinList))
 
-		#print(len(nbinList))
 	elif binSet == "e":
-		#print(minAA, stepAA, maxAA)
 		firstCoord = minAA-0.5*stepAA
 		secondCoord = minAA+0.5*stepAA
-		#print(firstCoord, secondCoord)
 		maxvalue = 0
 		while maxvalue <= maxAA+0.51*stepAA:
 			ebinList.append((firstCoord,secondCoord))
 			maxvalue =abs(secondCoord)
 			firstCoord = secondCoord
 			secondCoord = secondCoord+stepAA
+		logging.info("ebinList length:"+ str(len(ebinList)))
+		logging.debug("ebin terms"+str(ebinList))
 
 	elif binSet == "z":
-		#print(minAA, stepAA, maxAA)
 		firstCoord = minAA-0.5*stepAA
 		secondCoord = minAA+0.5*stepAA
-		#print(firstCoord, secondCoord)
 		maxvalue = 0
 		while maxvalue <= maxAA+0.51*stepAA:
 			zbinList.append((firstCoord,secondCoord))
 			maxvalue =abs(secondCoord)
 			firstCoord = secondCoord
 			secondCoord = secondCoord+stepAA
+		logging.info("zbinList length:"+ str(len(zbinList)))
+		logging.debug("zbin terms"+str(zbinList))
+
+
 	else: 
-		print("Bin label error")
+		logging.warning("Bin label error")
 
 def voxelSelector(nbinLow, nbinHi, ebinLow, ebinHi, zbinLow, zbinHi):
 	maniP.execute("""SELECT e, n, z, rgby FROM ptsTiny WHERE (n BETWEEN %(nmin)s and %(nmax)s) AND (e BETWEEN %(emin)s AND %(emax)s) AND (z BETWEEN %(zmin)s AND %(zmax)s);""", {'nmin':nbinLow, 'nmax':nbinHi, 'emin':ebinLow, 'emax':ebinHi, 'zmin': zbinLow, 'zmax': zbinHi})
+	if len(maniP.fetchall()) > 0:
+		logging.debug("Points selected--"+str(maniP.fetchall()))
 
 
-#connect to PostGRES db
-# Connect to an existing database
+
+
+
+# ======================================================================================================================
+# Begin Program
+
+
+
+logging.basicConfig(filename='Voxelizer.log',level=logging.DEBUG)
+
+
 try:
 	conn = psycopg2.connect("dbname='quest' user='basic' password='postgrescorvus'")
-	print("Connected")
+	logging.info("Database Connected")
 except:
-	print("Unable to connect to the database")
+	logging.warning("Unable to connect to the database")
 
 with conn.cursor() as maniP:
 	maniP.execute(
@@ -117,10 +134,11 @@ with conn.cursor() as maniP:
 		"""select max(n), min(n), count(n), max(e), min(e), count(e), max(z), min(z), count(z) FROM quest.public.ptsTiny"""
 		)
 	maxN, minN, countN, maxE, minE, countE, maxZ, minZ, countZ = (maniP.fetchall()[0])
-	print(maxN, minN, countN, maxE, minE, countE, maxZ, minZ, countZ)
+	logging.debug(" \n maxN = %s, minN = %s, countN = %s,  \n maxE = %s, minE = %s, countE = %s,  \n maxZ = %s, minZ = %s, countZ = %s"%(maxN, minN, countN, maxE, minE, countE, maxZ, minZ, countZ))
+
 	
 	if countN != countZ or countZ != countE:
-		print("Error: record counts return mismatched numbers.")
+		logging.warning("Record counts return mismatched numbers.")
 
 
 	initialize()
@@ -128,10 +146,11 @@ with conn.cursor() as maniP:
 	makeTupleList("n", minN, stepN, maxN)
 	makeTupleList("e", minE, stepE, maxE)
 	makeTupleList("z", minZ, stepZ, maxZ)
-	print("N:"+str(nbinList[:10])+", "+str(nbinList[-10:]))
-	print("E:"+str(ebinList[:10])+", "+str(ebinList[-10:]))
-	print("Z:"+str(zbinList[:10])+", "+str(zbinList[-10:]))
+	if (len(zbinList) != len(ebinList)) or (len(ebinList) != len(nbinList)) or (len(zbinList) != len(nbinList)):
+		logging.warning("BinLists are different lengths")
+	
 
+	logging.info("Beginning parsing and selection")
 	for n in nbinList:
 			#interpret tuple for nbin
 			nbinLow = n[0]
@@ -145,8 +164,11 @@ with conn.cursor() as maniP:
 					zbinLow = z[0]
 					zbinHi = z[1]
 					voxelSelector(nbinLow, nbinHi, ebinLow, ebinHi, zbinLow, zbinHi)
-					###print(maniP.fetchall())
+					logging.debug(" \n N - bin: %s, %s  \n E- bin: %s, %s  \n Z- bin: %s, %s" %(nbinLow, nbinHi, ebinLow, ebinHi, zbinLow, zbinHi))
+					if len(maniP.fetchall()) > 0:
+						logging.debug("Points selected--"+maniP.fetchall())
 					
 					#outter select for lowest point
 					#inner select for the three tuples
 					#append outter select to new table
+	logging.info("Finished completely")
