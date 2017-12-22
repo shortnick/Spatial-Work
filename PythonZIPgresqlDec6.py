@@ -8,13 +8,13 @@
 #
 
 ################################################################################
-
+#from __future__ import division
 import psycopg2
-import types 
 import logging
 
-binCount = 2
-binMax = binCount
+
+binCount = 4
+binMax = abs(binCount)
 
 
 #Range & Step variables
@@ -61,8 +61,8 @@ def initialize():
 
 def makeTupleList(binSet, minAA, stepAA, maxAA):
 	if binSet == "n":
-		firstCoord = minAA-0.5*stepAA
-		secondCoord = minAA+0.5*stepAA
+		firstCoord = round(minAA-0.5*stepAA, 6)
+		secondCoord = round(minAA+0.5*stepAA, 6)
 		maxvalue = 0
 		while maxvalue <= maxAA+0.51*stepAA:
 			nbinList.append((firstCoord,secondCoord))
@@ -73,8 +73,8 @@ def makeTupleList(binSet, minAA, stepAA, maxAA):
 		logging.debug("nbin terms"+str(nbinList))
 
 	elif binSet == "e":
-		firstCoord = minAA-0.5*stepAA
-		secondCoord = minAA+0.5*stepAA
+		firstCoord = round(minAA-0.5*stepAA, 6)
+		secondCoord = round(minAA+0.5*stepAA, 6)
 		maxvalue = 0
 		while maxvalue <= maxAA+0.51*stepAA:
 			ebinList.append((firstCoord,secondCoord))
@@ -85,8 +85,8 @@ def makeTupleList(binSet, minAA, stepAA, maxAA):
 		logging.debug("ebin terms"+str(ebinList))
 
 	elif binSet == "z":
-		firstCoord = minAA-0.5*stepAA
-		secondCoord = minAA+0.5*stepAA
+		firstCoord = round(minAA-0.5*stepAA, 6)
+		secondCoord = round(minAA+0.5*stepAA, 6)
 		maxvalue = 0
 		while maxvalue <= maxAA+0.51*stepAA:
 			zbinList.append((firstCoord,secondCoord))
@@ -102,10 +102,10 @@ def makeTupleList(binSet, minAA, stepAA, maxAA):
 
 def voxelSelector(nbinLow, nbinHi, ebinLow, ebinHi, zbinLow, zbinHi):
 	maniP.execute("""SELECT e, n, z, rgby FROM ptsTiny WHERE (n BETWEEN %(nmin)s and %(nmax)s) AND (e BETWEEN %(emin)s AND %(emax)s) AND (z BETWEEN %(zmin)s AND %(zmax)s);""", {'nmin':nbinLow, 'nmax':nbinHi, 'emin':ebinLow, 'emax':ebinHi, 'zmin': zbinLow, 'zmax': zbinHi})
+	logging.debug(" \n N - bin: %s, %s  \n E- bin: %s, %s  \n Z- bin: %s, %s" %(nbinLow, nbinHi, ebinLow, ebinHi, zbinLow, zbinHi))
 	if len(maniP.fetchall()) > 0:
-		logging.debug("Points selected--"+str(maniP.fetchall()))
-
-
+		for n in range(0,len(maniP.fetchall())):
+			logging.debug("Points selected--"+maniP.fetchall()[n])
 
 
 
@@ -125,16 +125,12 @@ except:
 
 with conn.cursor() as maniP:
 	maniP.execute(
-		"""(select ((max(n)-min(n))/(count(n)/20)) as ngap,
-		((max(e)-min(e))/(count(n)::numeric/20)) as egap,
-		((max(z)-min(z))/(count(n)::numeric/20)) as zgap
-		from quest.public.ptsTest)""")
-	gapN, gapE, gapZ = (maniP.fetchall()[0])
-	maniP.execute(
-		"""select max(n), min(n), count(n), max(e), min(e), count(e), max(z), min(z), count(z) FROM quest.public.ptsTiny"""
+		"""select max(n), min(n), count(n), max(e), min(e), count(e), max(z), min(z), count(z), (max(n)-min(n)),
+			(max(e)-min(e)),
+			(max(z)-min(z)) FROM quest.public.ptsTiny"""
 		)
-	maxN, minN, countN, maxE, minE, countE, maxZ, minZ, countZ = (maniP.fetchall()[0])
-	logging.debug(" \n maxN = %s, minN = %s, countN = %s,  \n maxE = %s, minE = %s, countE = %s,  \n maxZ = %s, minZ = %s, countZ = %s"%(maxN, minN, countN, maxE, minE, countE, maxZ, minZ, countZ))
+	maxN, minN, countN, maxE, minE, countE, maxZ, minZ, countZ, gapN, gapE, gapZ = (maniP.fetchall()[0])
+	logging.debug(" \n maxN = %s, minN = %s, countN = %s,  \n maxE = %s, minE = %s, countE = %s,  \n maxZ = %s, minZ = %s, countZ = %s, gapN = %s, gapE = %s, gapZ =%s"%(maxN, minN, countN, maxE, minE, countE, maxZ, minZ, countZ, gapN, gapE, gapZ))
 
 	
 	if countN != countZ or countZ != countE:
@@ -164,9 +160,7 @@ with conn.cursor() as maniP:
 					zbinLow = z[0]
 					zbinHi = z[1]
 					voxelSelector(nbinLow, nbinHi, ebinLow, ebinHi, zbinLow, zbinHi)
-					logging.debug(" \n N - bin: %s, %s  \n E- bin: %s, %s  \n Z- bin: %s, %s" %(nbinLow, nbinHi, ebinLow, ebinHi, zbinLow, zbinHi))
-					if len(maniP.fetchall()) > 0:
-						logging.debug("Points selected--"+maniP.fetchall())
+					
 					
 					#outter select for lowest point
 					#inner select for the three tuples
