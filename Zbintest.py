@@ -1,9 +1,9 @@
-################################################################################
+###################################################################
 #PythonPostGRES
 #
 #
 # Status 12-2-17: trying to replace iteration loops with lists of zipped tupples and simple list comprehension
-#
+# Status 12-21-17: weirdness-> zbin is 9 terms long, not 5 like nbin and ebin @ 5 ea., plus division isn't being done right for step values?
 #
 #
 
@@ -110,12 +110,13 @@ def voxelSelector(nbinLow, nbinHi, ebinLow, ebinHi, zbinLow, zbinHi):
 
 
 
+
 # ======================================================================================================================
 # Begin Program
 
 
 
-logging.basicConfig(filename='Voxelizer.log',level=logging.DEBUG)
+logging.basicConfig(filename='VoxelizerDebugs.log',level=logging.DEBUG)
 
 
 try:
@@ -128,12 +129,12 @@ try:
 			"""(select (max(n)-min(n)),
 			(max(e)-min(e)),
 			(max(z)-min(z))
-			from quest.public.ptsTest)""")
+			from quest.public.ptsTiny)""")
 		gapN, gapE, gapZ = (maniP.fetchall()[0])
 		#why can't (maniP.fetchall()[0]) be printed? it's 'out of range'
 		logging.debug("gapN = %s, gapE = %s, gapZ =%s"%(gapN, gapE, gapZ))
 		maniP.execute(
-			"""select max(n), min(n), count(n), max(e), min(e), count(e), max(z), min(z), count(z) FROM quest.public.ptsTest"""
+			"""select max(n), min(n), count(n), max(e), min(e), count(e), max(z), min(z), count(z) FROM quest.public.ptsTiny"""
 			)
 		maxN, minN, countN, maxE, minE, countE, maxZ, minZ, countZ = (maniP.fetchall()[0])
 		logging.debug(" \n maxN = %s, minN = %s, countN = %s,  \n maxE = %s, minE = %s, countE = %s,  \n maxZ = %s, minZ = %s, countZ = %s"%(maxN, minN, countN, maxE, minE, countE, maxZ, minZ, countZ))
@@ -144,33 +145,11 @@ try:
 
 
 	initialize()
-
-	makeTupleList("n", minN, stepN, maxN)
-	makeTupleList("e", minE, stepE, maxE)
-	makeTupleList("z", minZ, stepZ, maxZ)
-	if (len(zbinList) != len(ebinList)) or (len(ebinList) != len(nbinList)) or (len(zbinList) != len(nbinList)):
-		logging.warning("BinLists are different lengths")
 	
 
-	logging.info("Beginning parsing and selection")
-	for n in nbinList:
-			#interpret tuple for nbin
-			nbinLow = n[0]
-			nbinHi = n[1]
-
-			for e in ebinList:
-				ebinLow = e[0]
-				ebinHi = e[1]
-			#interpret tuple for ebin
-				for z in zbinList:
-					zbinLow = z[0]
-					zbinHi = z[1]
-					#outter select for lowest point
-					#inner select for the three tuples
-					#append outter select to new table
-					voxelSelector(nbinLow, nbinHi, ebinLow, ebinHi, zbinLow, zbinHi)
-									
-	logging.info("Finished completely")
+	makeTupleList("z", minZ, stepZ, maxZ)
+	
 
 except:
-	logging.warning("General error")
+	logging.warning("Unable to connect to the database")
+
