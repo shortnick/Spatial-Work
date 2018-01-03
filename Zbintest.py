@@ -4,24 +4,19 @@
 #
 # Status 12-2-17: trying to replace iteration loops with lists of zipped tupples and simple list comprehension
 # Status 12-21-17: weirdness-> zbin is 9 terms long, not 5 like nbin and ebin @ 5 ea., plus division isn't being done right for step values?
-#
+# Status 12-26-17: selector fixed, problem of the day: text input into SQL command, make table
 #
 
 ################################################################################
 #from __future__ import division
 import psycopg2
+from psycopg2 import sql
 import logging
-import inspect
+
 
 
 binCount = 4
 binMax = abs(binCount)
-
-####DEBUG CODE
-def dump(obj):
-  for attr in dir(obj):
-    print("obj.%s = %s" % (attr, getattr(obj, attr)))
-
 
 #Range & Step variables
 maxN = -9 
@@ -58,16 +53,11 @@ def initialize():
 	stepN = gapN/binCount
 	stepE = gapE/binCount
 	stepZ = gapZ/binCount
-	ratioN = str(stepN/gapN)
-	ratioE = str(stepE/gapE)
-	ratioZ = str(stepZ/gapZ)
 	logging.info("Bins Initialized")
-	logging.debug("N step: "+str(stepN)) #, " Ratio of step to gap: " + str(stepN/gapN)
-	logging.debug("E step: "+str(stepE)) #, " Ratio of step to gap: " + str(stepE/gapE))
-	logging.debug("Z step: "+str(stepZ)) #, " Ratio of step to gap: " + str(stepZ/gapZ))
-
+	
 def makeTupleList(binSet, minAA, stepAA, maxAA):
 	if binSet == "n":
+		logging.debug("minAA is %s, stepAA is %s, maxAA is %s"%(minAA, stepAA, maxAA))
 		firstCoord = round(minAA-0.5*stepAA, 6)
 		secondCoord = round(minAA+0.5*stepAA, 6)
 		maxvalue = 0
@@ -80,6 +70,7 @@ def makeTupleList(binSet, minAA, stepAA, maxAA):
 		logging.debug("nbin terms"+str(nbinList))
 
 	elif binSet == "e":
+		logging.debug("minAA is %s, stepAA is %s, maxAA is %s"%(minAA, stepAA, maxAA))
 		firstCoord = round(minAA-0.5*stepAA, 6)
 		secondCoord = round(minAA+0.5*stepAA, 6)
 		maxvalue = 0
@@ -97,7 +88,7 @@ def makeTupleList(binSet, minAA, stepAA, maxAA):
 		secondCoord = round(minAA+0.5*stepAA, 6)
 		maxvalue = 0
 		while maxvalue <= maxAA+0.51*stepAA:
-			logging.debug("firstcoord: %s \n secondcoord: %s"%(firstCoord, secondCoord))
+			#logging.debug("firstcoord: %s \n secondcoord: %s"%(firstCoord, secondCoord))
 			zbinList.append((firstCoord,secondCoord))
 			maxvalue =abs(secondCoord)
 			firstCoord = secondCoord
@@ -121,8 +112,39 @@ def voxelSelector(nbinLow, nbinHi, ebinLow, ebinHi, zbinLow, zbinHi):
 			if c < charlie:
 				threshold = q
 		logging.info("Low point " +str(threshold))	
-		outputBin.append(threshold)		
-#	print(maniP.fetchall())
+		outputBin.append(threshold)	
+
+def makeSQLtable(table_name):
+	new_table = sql.SQL("""DROP TABLE {}; CREATE TABLE {}
+	    (
+	      E double precision NOT NULL,
+	      N double precision NOT NULL,
+	      Z double precision NOT NULL,
+	      RGBY character varying(50)
+	    );""").format(sql.Identifier(table_name), sql.Identifier(table_name))
+	    
+
+	logging.debug("SQL: "+str(new_table))
+	maniP.execute(new_table)
+	logging.info("Made table "+table_name)
+
+def writeOutput2SQL(table_name, selectedpoints):
+	logging.debug("Writing results to SQL " +table_name)
+	for point in selectedpoints:
+		east, north, up, color = point
+
+		"""cur.execute(       a,b)                                         # correct
+		...  a =   SQL("INSERT INTO {} VALUES (%s)").format(Identifier('numbers'))
+		...  b =   (10,)"""
+
+		a = sql.SQL("INSERT INTO {tbl} (E, N, Z, RGBY) VALUES (%(east)s, %(north)s, %(up)s, %(color)s);").format(tbl=sql.Identifier(table_name))
+		b= ({'east':east, 'north':north, 'up':up, 'color':color})
+		#points_out = sql.SQL(', ').join([a,b]).as_string(conn)
+		#print(str(points_out))
+		logging.debug("SQL: "+str(a)+str(b))
+		maniP.execute(a,b)
+
+	logging.info("Output to table " +table_name+ " complete")
 
 
 
@@ -182,11 +204,17 @@ with conn.cursor() as maniP:
 				for z in zbinList:
 					zbinLow = z[0]
 					zbinHi = z[1]
-					#outter select for lowest point
-					#inner select for the three tuples
-					#append outter select to new table
 					voxelSelector(nbinLow, nbinHi, ebinLow, ebinHi, zbinLow, zbinHi)
 	logging.info("\n \n Final Output Selection")
 	logging.info(outputBin)
-									
+	#create external sql table
+	makeSQLtable("VoxelizerOutput")
+	#write outputbin to external table
+	writeOutput2SQL("VoxelizerOutput", outputBin)
+	#close connections
+	conn.commit()
+
+
+
+
 	logging.info("Finished completely")
