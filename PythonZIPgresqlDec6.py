@@ -41,9 +41,9 @@ zbinHi = -9
 nbinList = []
 ebinList = [] 
 zbinList = []
+outputBin = []
 
 # Functions
-
 def initialize():
 	global stepN
 	global stepE
@@ -55,12 +55,10 @@ def initialize():
 	ratioE = str(stepE/gapE)
 	ratioZ = str(stepZ/gapZ)
 	logging.info("Bins Initialized")
-	logging.debug("N step: "+str(stepN)) #, " Ratio of step to gap: " + str(stepN/gapN)
-	logging.debug("E step: "+str(stepE)) #, " Ratio of step to gap: " + str(stepE/gapE))
-	logging.debug("Z step: "+str(stepZ)) #, " Ratio of step to gap: " + str(stepZ/gapZ))
-
+	
 def makeTupleList(binSet, minAA, stepAA, maxAA):
 	if binSet == "n":
+		logging.debug("minAA is %s, stepAA is %s, maxAA is %s"%(minAA, stepAA, maxAA))
 		firstCoord = round(minAA-0.5*stepAA, 6)
 		secondCoord = round(minAA+0.5*stepAA, 6)
 		maxvalue = 0
@@ -73,6 +71,7 @@ def makeTupleList(binSet, minAA, stepAA, maxAA):
 		logging.debug("nbin terms"+str(nbinList))
 
 	elif binSet == "e":
+		logging.debug("minAA is %s, stepAA is %s, maxAA is %s"%(minAA, stepAA, maxAA))
 		firstCoord = round(minAA-0.5*stepAA, 6)
 		secondCoord = round(minAA+0.5*stepAA, 6)
 		maxvalue = 0
@@ -90,7 +89,7 @@ def makeTupleList(binSet, minAA, stepAA, maxAA):
 		secondCoord = round(minAA+0.5*stepAA, 6)
 		maxvalue = 0
 		while maxvalue <= maxAA+0.51*stepAA:
-			logging.debug("firstcoord: %s \n secondcoord: %s"%(firstCoord, secondCoord))
+			#logging.debug("firstcoord: %s \n secondcoord: %s"%(firstCoord, secondCoord))
 			zbinList.append((firstCoord,secondCoord))
 			maxvalue =abs(secondCoord)
 			firstCoord = secondCoord
@@ -104,11 +103,17 @@ def makeTupleList(binSet, minAA, stepAA, maxAA):
 
 def voxelSelector(nbinLow, nbinHi, ebinLow, ebinHi, zbinLow, zbinHi):
 	maniP.execute("""SELECT e, n, z, rgby FROM ptsTiny WHERE (n BETWEEN %(nmin)s and %(nmax)s) AND (e BETWEEN %(emin)s AND %(emax)s) AND (z BETWEEN %(zmin)s AND %(zmax)s);""", {'nmin':nbinLow, 'nmax':nbinHi, 'emin':ebinLow, 'emax':ebinHi, 'zmin': zbinLow, 'zmax': zbinHi})
-	if len(maniP.fetchall()) > 0:
-		logging.debug("Points selected--"+str(maniP.fetchall()))
-
-
-
+	collectedResults = maniP.fetchall()
+	if len(collectedResults) > 0:
+		logging.debug("Voxel with points\n" + str(collectedResults))
+		threshold = (-99999, -99999, 1000000000000, -99999)
+		for q in collectedResults:
+			alpha, beta, charlie, delta = threshold
+			a, b, c, d = q
+			if c < charlie:
+				threshold = q
+		logging.info("Low point " +str(threshold))	
+		outputBin.append(threshold)		
 
 # ======================================================================================================================
 # Begin Program
@@ -152,6 +157,7 @@ try:
 		logging.warning("BinLists are different lengths")
 	
 
+
 	logging.info("Beginning parsing and selection")
 	for n in nbinList:
 			#interpret tuple for nbin
@@ -169,8 +175,6 @@ try:
 					#inner select for the three tuples
 					#append outter select to new table
 					voxelSelector(nbinLow, nbinHi, ebinLow, ebinHi, zbinLow, zbinHi)
-									
+	logging.info("\n \n Final Output Selection")
+	logging.info(outputBin)
 	logging.info("Finished completely")
-
-except:
-	logging.warning("General error")
