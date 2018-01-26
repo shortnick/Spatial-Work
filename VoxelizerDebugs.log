@@ -1,0 +1,161 @@
+INFO:root:Database Connected
+INFO:root:Database Connected
+INFO:root:Database Connected
+INFO:root:Database Connected
+INFO:root:Database Connected
+INFO:root:Database Connected
+INFO:root:Database Connected
+INFO:root:Database Connected
+INFO:root:Database Connected
+INFO:root:Database Connected
+INFO:root:Database Connected
+INFO:root:Database Connected
+INFO:root:Database Connected
+INFO:root:Database Connected
+INFO:root:Database Connected
+INFO:root:Database Connected
+INFO:root:Database Connected
+INFO:root:Database Connected
+INFO:root:Database Connected
+INFO:root:Database Connected
+INFO:root:Database Connected
+INFO:root:Database Connected
+INFO:root:Database Connected
+INFO:root:Database Connected
+INFO:root:Database Connected
+INFO:root:Database Connected
+INFO:root:Database Connected
+INFO:root:Database Connected
+INFO:root:Database Connected
+INFO:root:Database Connected
+INFO:root:Database Connected
+INFO:root:Database Connected
+INFO:root:Database Connected
+INFO:root:Database Connected
+INFO:root:Database Connected
+INFO:root:Database Connected
+INFO:root:Database Connected
+INFO:root:Database Connected
+INFO:root:Database Connected
+INFO:root:Database Connected
+INFO:root:Database Connected
+INFO:root:Database Connected
+INFO:root:Database Connected
+INFO:root:Database Connected
+DEBUG:root: 
+ maxN = 486205.53, minN = 485854.624, countN = 10,  
+ maxE = 1483729.949, minE = 1483678.151, countE = 10,  
+ maxZ = 2721.671, minZ = 2703.242, countZ = 10
+INFO:root:Bins Initialized
+DEBUG:root:minAA is 485854.624, stepAA is 87.72650000000425, maxAA is 486205.53
+INFO:root:nbinList length:6
+DEBUG:root:nbin terms[(485810.76075, 485898.48725), (485898.48725, 485986.21375), (485986.21375, 486073.94025), (486073.94025, 486161.66675), (486161.66675, 486249.39324999996), (486249.39324999996, 486337.11974999995)]
+DEBUG:root:minAA is 1483678.151, stepAA is 12.9494999999879, maxAA is 1483729.949
+INFO:root:ebinList length:6
+DEBUG:root:ebin terms[(1483671.67625, 1483684.62575), (1483684.62575, 1483697.57525), (1483697.57525, 1483710.52475), (1483710.52475, 1483723.4742500002), (1483723.4742500002, 1483736.4237500003), (1483736.4237500003, 1483749.3732500004)]
+DEBUG:root:minAA is 2703.242, stepAA is 4.6072499999999, maxAA is 2721.671
+INFO:root:zbinList length:6
+DEBUG:root:zbin terms[(2700.938375, 2705.545625), (2705.545625, 2710.152875), (2710.152875, 2714.7601250000002), (2714.7601250000002, 2719.3673750000003), (2719.3673750000003, 2723.9746250000003), (2723.9746250000003, 2728.5818750000003)]
+INFO:root:Beginning parsing and selection
+DEBUG:root:Voxel with points
+[(1483722.24, 485856.769, 2704.968, '16 58 57 33'), (1483722.433, 485855.831, 2703.981, '50 66 61 41')]
+INFO:root:Low point (1483722.433, 485855.831, 2703.981, '50 66 61 41')
+DEBUG:root:Voxel with points
+[(1483722.928, 485856.725, 2705.572, '25 58 57 33')]
+INFO:root:Low point (1483722.928, 485856.725, 2705.572, '25 58 57 33')
+DEBUG:root:Voxel with points
+[(1483729.949, 485854.767, 2703.242, '25 58 57 41'), (1483728.951, 485855.993, 2703.603, '16 58 57 41'), (1483727.626, 485854.624, 2703.908, '25 66 61 49'), (1483723.872, 485855.585, 2703.967, '8 66 65 41')]
+INFO:root:Low point (1483729.949, 485854.767, 2703.242, '25 58 57 41')
+DEBUG:root:Voxel with points
+[(1483726.081, 485865.295, 2706.681, '42 66 57 49'), (1483725.884, 485864.96, 2706.681, '16 66 57 49')]
+INFO:root:Low point (1483726.081, 485865.295, 2706.681, '42 66 57 49')
+DEBUG:root:Voxel with points
+[(1483678.151, 486205.53, 2721.671, '16 74 53 33')]
+INFO:root:Low point (1483678.151, 486205.53, 2721.671, '16 74 53 33')
+INFO:root:
+ 
+ Final Output Selection
+DEBUG:root:[(1483722.433, 485855.831, 2703.981, '50 66 61 41'), (1483722.928, 485856.725, 2705.572, '25 58 57 33'), (1483729.949, 485854.767, 2703.242, '25 58 57 41'), (1483726.081, 485865.295, 2706.681, '42 66 57 49'), (1483678.151, 486205.53, 2721.671, '16 74 53 33')]
+DEBUG:root:SQL: Composed([SQL('DROP TABLE '), Identifier('VoxelizerOutput'), SQL('; CREATE TABLE '), Identifier('VoxelizerOutput'), SQL('\n\t    (\n\t      E double precision NOT NULL,\n\t      N double precision NOT NULL,\n\t      Z double precision NOT NULL,\n\t      RGBY character varying(50)\n\t    );')])
+INFO:root:Made table VoxelizerOutput
+DEBUG:root:Writing results to SQL VoxelizerOutput
+DEBUG:root:SQL: Composed([SQL('INSERT INTO '), Identifier('VoxelizerOutput'), SQL(' (E, N, Z, RGBY) VALUES (%(east)s, %(north)s, %(up)s, %(color)s);')]){'north': 485855.831, 'color': '50 66 61 41', 'east': 1483722.433, 'up': 2703.981}
+DEBUG:root:SQL: Composed([SQL('INSERT INTO '), Identifier('VoxelizerOutput'), SQL(' (E, N, Z, RGBY) VALUES (%(east)s, %(north)s, %(up)s, %(color)s);')]){'north': 485856.725, 'color': '25 58 57 33', 'east': 1483722.928, 'up': 2705.572}
+DEBUG:root:SQL: Composed([SQL('INSERT INTO '), Identifier('VoxelizerOutput'), SQL(' (E, N, Z, RGBY) VALUES (%(east)s, %(north)s, %(up)s, %(color)s);')]){'north': 485854.767, 'color': '25 58 57 41', 'east': 1483729.949, 'up': 2703.242}
+DEBUG:root:SQL: Composed([SQL('INSERT INTO '), Identifier('VoxelizerOutput'), SQL(' (E, N, Z, RGBY) VALUES (%(east)s, %(north)s, %(up)s, %(color)s);')]){'north': 485865.295, 'color': '42 66 57 49', 'east': 1483726.081, 'up': 2706.681}
+DEBUG:root:SQL: Composed([SQL('INSERT INTO '), Identifier('VoxelizerOutput'), SQL(' (E, N, Z, RGBY) VALUES (%(east)s, %(north)s, %(up)s, %(color)s);')]){'north': 486205.53, 'color': '16 74 53 33', 'east': 1483678.151, 'up': 2721.671}
+INFO:root:Output to table VoxelizerOutput complete
+INFO:root:Finished completely
+INFO:root:Database Connected at 18-01-14 15:38:03
+DEBUG:root: 
+ maxN = 486205.53, minN = 485854.624, countN = 10,  
+ maxE = 1483729.949, minE = 1483678.151, countE = 10,  
+ maxZ = 2721.671, minZ = 2703.242, countZ = 10
+INFO:root:Bins Initialized
+DEBUG:root:minAA is 485854.624, stepAA is 87.72650000000425, maxAA is 486205.53
+INFO:root:nbinList length:6
+DEBUG:root:nbin terms[(485810.76075, 485898.48725), (485898.48725, 485986.21375), (485986.21375, 486073.94025), (486073.94025, 486161.66675), (486161.66675, 486249.39324999996), (486249.39324999996, 486337.11974999995)]
+DEBUG:root:minAA is 1483678.151, stepAA is 12.9494999999879, maxAA is 1483729.949
+INFO:root:ebinList length:6
+DEBUG:root:ebin terms[(1483671.67625, 1483684.62575), (1483684.62575, 1483697.57525), (1483697.57525, 1483710.52475), (1483710.52475, 1483723.4742500002), (1483723.4742500002, 1483736.4237500003), (1483736.4237500003, 1483749.3732500004)]
+DEBUG:root:minAA is 2703.242, stepAA is 4.6072499999999, maxAA is 2721.671
+INFO:root:zbinList length:6
+DEBUG:root:zbin terms[(2700.938375, 2705.545625), (2705.545625, 2710.152875), (2710.152875, 2714.7601250000002), (2714.7601250000002, 2719.3673750000003), (2719.3673750000003, 2723.9746250000003), (2723.9746250000003, 2728.5818750000003)]
+INFO:root:Beginning parsing and selection
+DEBUG:root:Voxel with points
+[(1483722.24, 485856.769, 2704.968, '16 58 57 33'), (1483722.433, 485855.831, 2703.981, '50 66 61 41')]
+INFO:root:Low point (1483722.433, 485855.831, 2703.981, '50 66 61 41')
+DEBUG:root:Voxel with points
+[(1483722.928, 485856.725, 2705.572, '25 58 57 33')]
+INFO:root:Low point (1483722.928, 485856.725, 2705.572, '25 58 57 33')
+DEBUG:root:Voxel with points
+[(1483729.949, 485854.767, 2703.242, '25 58 57 41'), (1483728.951, 485855.993, 2703.603, '16 58 57 41'), (1483727.626, 485854.624, 2703.908, '25 66 61 49'), (1483723.872, 485855.585, 2703.967, '8 66 65 41')]
+INFO:root:Low point (1483729.949, 485854.767, 2703.242, '25 58 57 41')
+DEBUG:root:Voxel with points
+[(1483726.081, 485865.295, 2706.681, '42 66 57 49'), (1483725.884, 485864.96, 2706.681, '16 66 57 49')]
+INFO:root:Low point (1483726.081, 485865.295, 2706.681, '42 66 57 49')
+DEBUG:root:Voxel with points
+[(1483678.151, 486205.53, 2721.671, '16 74 53 33')]
+INFO:root:Low point (1483678.151, 486205.53, 2721.671, '16 74 53 33')
+INFO:root:
+ 
+ Final Output Selection
+DEBUG:root:[(1483722.433, 485855.831, 2703.981, '50 66 61 41'), (1483722.928, 485856.725, 2705.572, '25 58 57 33'), (1483729.949, 485854.767, 2703.242, '25 58 57 41'), (1483726.081, 485865.295, 2706.681, '42 66 57 49'), (1483678.151, 486205.53, 2721.671, '16 74 53 33')]
+INFO:root:Database Connected at 18-01-14 15:39:00
+DEBUG:root: 
+ maxN = 486205.53, minN = 485854.624, countN = 10,  
+ maxE = 1483729.949, minE = 1483678.151, countE = 10,  
+ maxZ = 2721.671, minZ = 2703.242, countZ = 10
+INFO:root:Bins Initialized
+DEBUG:root:minAA is 485854.624, stepAA is 87.72650000000425, maxAA is 486205.53
+INFO:root:nbinList length:6
+DEBUG:root:nbin terms[(485810.76075, 485898.48725), (485898.48725, 485986.21375), (485986.21375, 486073.94025), (486073.94025, 486161.66675), (486161.66675, 486249.39324999996), (486249.39324999996, 486337.11974999995)]
+DEBUG:root:minAA is 1483678.151, stepAA is 12.9494999999879, maxAA is 1483729.949
+INFO:root:ebinList length:6
+DEBUG:root:ebin terms[(1483671.67625, 1483684.62575), (1483684.62575, 1483697.57525), (1483697.57525, 1483710.52475), (1483710.52475, 1483723.4742500002), (1483723.4742500002, 1483736.4237500003), (1483736.4237500003, 1483749.3732500004)]
+DEBUG:root:minAA is 2703.242, stepAA is 4.6072499999999, maxAA is 2721.671
+INFO:root:zbinList length:6
+DEBUG:root:zbin terms[(2700.938375, 2705.545625), (2705.545625, 2710.152875), (2710.152875, 2714.7601250000002), (2714.7601250000002, 2719.3673750000003), (2719.3673750000003, 2723.9746250000003), (2723.9746250000003, 2728.5818750000003)]
+INFO:root:Beginning parsing and selection
+DEBUG:root:Voxel with points
+[(1483722.24, 485856.769, 2704.968, '16 58 57 33'), (1483722.433, 485855.831, 2703.981, '50 66 61 41')]
+INFO:root:Low point (1483722.433, 485855.831, 2703.981, '50 66 61 41')
+DEBUG:root:Voxel with points
+[(1483722.928, 485856.725, 2705.572, '25 58 57 33')]
+INFO:root:Low point (1483722.928, 485856.725, 2705.572, '25 58 57 33')
+DEBUG:root:Voxel with points
+[(1483729.949, 485854.767, 2703.242, '25 58 57 41'), (1483728.951, 485855.993, 2703.603, '16 58 57 41'), (1483727.626, 485854.624, 2703.908, '25 66 61 49'), (1483723.872, 485855.585, 2703.967, '8 66 65 41')]
+INFO:root:Low point (1483729.949, 485854.767, 2703.242, '25 58 57 41')
+DEBUG:root:Voxel with points
+[(1483726.081, 485865.295, 2706.681, '42 66 57 49'), (1483725.884, 485864.96, 2706.681, '16 66 57 49')]
+INFO:root:Low point (1483726.081, 485865.295, 2706.681, '42 66 57 49')
+DEBUG:root:Voxel with points
+[(1483678.151, 486205.53, 2721.671, '16 74 53 33')]
+INFO:root:Low point (1483678.151, 486205.53, 2721.671, '16 74 53 33')
+INFO:root:
+ 
+ Final Output Selection
+DEBUG:root:[(1483722.433, 485855.831, 2703.981, '50 66 61 41'), (1483722.928, 485856.725, 2705.572, '25 58 57 33'), (1483729.949, 485854.767, 2703.242, '25 58 57 41'), (1483726.081, 485865.295, 2706.681, '42 66 57 49'), (1483678.151, 486205.53, 2721.671, '16 74 53 33')]
+INFO:root:Finished completely at 18-01-14 15:39:01
+INFO:root:Database Connected at 18-01-25 14:53:30
+INFO:root:Database Connected at 18-01-25 15:04:02

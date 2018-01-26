@@ -16,6 +16,7 @@
 import logging
 #see loggin cursor http://initd.org/psycopg/docs/extras.html#module-psycopg2.extras
 import datetime
+import csv
 
 import psycopg2
 from psycopg2 import sql
@@ -31,6 +32,7 @@ logging specifics
 #### Input Variables
 binCount = 4
 binMax = abs(binCount)
+overwrite = True
 
 #Range & Step variables
 maxN = -9 
@@ -71,22 +73,22 @@ def startCursor(dbase, user_name, pw):
 	logging.info("Database Connected at "+datetime.datetime.now().strftime("%y-%m-%d %H:%M:%S"))
 	return psycopg2.connect(loginString)
 
-def fetchParams():
+def fetchParams(table_name):
 	"""
-	Cursor retrieves important parameters of E, N, Z coordinate columns from SQL table.
+	Cursor retrieves important parameters of E, N, Z coordinate columns from SQL table. Give input as string.
 	"""
-	#sql.SQL isn't gonna handle passing in the database.schema.table as a parameter. There is an AsIs() function, but needs some call/response error checking 
 	global maxN, minN, countN, gapN
 	global maxE, minE, countE, gapE
 	global maxZ, minZ, countZ, gapZ
 	
-	query = sql.SQL("""SELECT max(n), min(n), count(n), (max(n)-min(n)), max(e), min(e), count(e), (max(e)-min(e)), max(z), min(z), count(z), (max(z)-min(z)) FROM quest.public.ptsTiny;""")
+	query = sql.SQL("""SELECT max(n), min(n), count(n), (max(n)-min(n)), max(e), min(e), count(e), (max(e)-min(e)), max(z), min(z), count(z), (max(z)-min(z)) FROM {};""").format(sql.Identifier(table_name))
 	
 	xCURSORx.execute(query)
 	maxN, minN, countN, gapN, maxE, minE, countE, gapE, maxZ, minZ, countZ, gapZ = (xCURSORx.fetchall()[0])
 	logging.debug(" \n maxN = %s, minN = %s, countN = %s,  \n maxE = %s, minE = %s, countE = %s,  \n maxZ = %s, minZ = %s, countZ = %s"%(maxN, minN, countN, maxE, minE, countE, maxZ, minZ, countZ))
 	if countN != countZ or countZ != countE:
 		logging.warning("Record counts return mismatched numbers.")
+
 
 
 def initializeVars():
@@ -168,23 +170,48 @@ def voxelSelector(nbinLow, nbinHi, ebinLow, ebinHi, zbinLow, zbinHi):
 		logging.info("Low point " +str(threshold))	
 		outputBin.append(threshold)	
 
-def makeSQLtable(table_name):
-	"""
-	Makes SQL call to drop existing table with this name and create a new one with E, N, Z, color columns. Use string for input.
-	"""
-	new_table = sql.SQL("""DROP TABLE {}; CREATE TABLE {}
+def table_exists(table_name):
+	query= sql.SQL("""SELECT EXISTS 
+		(
+		SELECT 1
+		FROM information_schema.tables 
+		WHERE table_schema = 'public'
+		AND table_name = {}
+		);""").format(sql.Literal(table_name))
+	xCURSORx.execute(query)
+	extant = xCURSORx.fetchall()[0][0]
+	logging.debug("Table "+table_name+" exists = "+str(extant))
+	return extant
+
+def make_table(table_name):
+	value = table_exists(table_name)
+	a = sql.SQL("""DROP TABLE {}; """).format(sql.Identifier(table_name))
+
+	b = sql.SQL("""CREATE TABLE {}
 	    (
 	      E double precision NOT NULL,
 	      N double precision NOT NULL,
 	      Z double precision NOT NULL,
 	      RGBY character varying(50)
-	    );""").format(sql.Identifier(table_name), sql.Identifier(table_name))
-	    
-
-	logging.debug("SQL: "+str(new_table))
-	xCURSORx.execute(new_table)
-	logging.info("Made table "+table_name)
-
+	    );""").format(sql.Identifier(table_name))
+	#print(a)
+	#print(b)
+	
+	if value==True:
+		if overwrite == True:
+			#print("table true1")
+			xCURSORx.execute(a)
+			xCURSORx.execute(b)
+			logging.info("Table overwritten")
+		else:
+			print("Overwrite not enabled, and that table already exists. Exiting.")
+			logging.warning("Program halted by overwrite protection.")
+			exit()
+	else:
+		#print("table time")
+		xCURSORx.execute(b)
+		loggin.info("No table present, new table created")
+		
 def writeOutput2SQL(table_name, selectedpoints):
 	"""
 	Uses first input to access SQL table, inserting a row for each tuple in the the second input, using psycopg2 cursor.  
@@ -200,9 +227,16 @@ def writeOutput2SQL(table_name, selectedpoints):
 
 	logging.info("Output to table " +table_name+ " complete")
 
+def write_csv_out(outList):
+	"""
+	Writes contents of a list of tuples out to a csv, with no header.
+	"""
+	quotechar="'"
+	with open('VoxelizerOutput.csv', 'w', newline='') as outputCSV:
+		pointwriter = csv.writer(outputCSV, delimiter= ',', quotechar=quotechar, quoting=csv.QUOTE_MINIMAL)
 
-
-
+		for line in outList:
+			pointwriter.writerow(line)
 
 # ================================================================================================
 # Begin Program
@@ -218,7 +252,7 @@ conn = startCursor('quest', 'basic', 'postgrescorvus')
 
 with conn.cursor() as xCURSORx:
 	
-	fetchParams()
+	fetchParams('ptsTiny')
 	
 	initializeVars()
 
@@ -244,9 +278,11 @@ with conn.cursor() as xCURSORx:
 	logging.info("\n \n Final Output Selection")
 	logging.debug(outputBin)
 	
-	makeSQLtable("VoxelizerOutput")
+	#makeSQLtable("VoxelizerOutput")
 	
-	writeOutput2SQL("VoxelizerOutput", outputBin)
+	#writeOutput2SQL("VoxelizerOutput", outputBin)
+
+	write_csv_out(outputBin)
 	
 	conn.commit()
 
