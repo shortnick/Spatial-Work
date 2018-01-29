@@ -21,15 +21,15 @@ from psycopg2 import sql
 
 ########################################
 # User Input Variables
-binCount = 4
+binCount = 15
 binMax = abs(binCount)
 overwriteFiles=False
-inputSQLtable='ptstiny'
-outputFilename='ptsTinyVoxel'
+inputSQLtable='importTest'
+outputFilename='importTestVoxel'
 database = 'quest'
 user = 'basic'
 pw = 'postgrescorvus'
-writeToSQL=True
+writeToSQL=False
 writeToCSV=True
 
 ########################################
@@ -100,14 +100,16 @@ def make_table(table_name):
 	"""
 	Creates SQL table for Voxelizer output. Use string for input.
 	"""
-	global outputFilename 
 	
 	theTable = sql.SQL("""CREATE TABLE {}
 	    (
-	      E double precision NOT NULL,
+	       E double precision NOT NULL,
 	      N double precision NOT NULL,
 	      Z double precision NOT NULL,
-	      RGBY character varying(50)
+	      R smallint NOT NULL,
+	      Gee smallint NOT NULL,
+	      B smallint NOT NULL,
+	      Y smallint NOT NULL
 	    );""").format(sql.Identifier(table_name))
 	
 	try:
@@ -125,9 +127,9 @@ def write_SQL_output(table_name):
 	logList=[]
 	logging.debug(outputBin)
 	for tupleOut in outputBin:
-		east, north, up, color = tupleOut
-		a = sql.SQL("INSERT INTO {tbl} (E, N, Z, RGBY) VALUES (%(east)s, %(north)s, %(up)s, %(color)s);").format(tbl=sql.Identifier(table_name))
-		b= ({'east':east, 'north':north, 'up':up, 'color':color})
+		east, north, up, R, Gee, B, Y = tupleOut
+		a = sql.SQL("INSERT INTO {tbl} (E, N, Z, R, Gee, B, Y) VALUES (%(east)s, %(north)s, %(up)s, %(R)s, %(Gee)s, %(B)s, %(Y)s);").format(tbl=sql.Identifier(table_name))
+		b= ({'east':east, 'north':north, 'up':up, 'R':R, 'Gee':Gee, 'B':B, 'Y':Y})
 		#Use this to see SQL statement for each point: logging.debug("SQL: "+str(a)+str(b))
 		try:
 			xCURSORx.execute(a,b)
@@ -143,25 +145,26 @@ def write_csv_out(outList, filename):
 	Use list, string as inputs.
 	"""
 	logList=[]
-	fileOut = filename+'.csv'
-	quotechar="'"
-	with open(fileOut, 'w', newline='') as outputCSV:
-		pointwriter = csv.writer(outputCSV, delimiter= ',', quotechar=quotechar, quoting=csv.QUOTE_MINIMAL)
+	fileOut = filename+'.pts'
+	quotechar=""
+	with open(fileOut, 'w', newline='\n') as outputCSV:
+		pointwriter = csv.writer(outputCSV, delimiter= ' ', quoting=csv.QUOTE_MINIMAL)
 
 		for lineOut in outList:
-			try:
+			try:		
 				pointwriter.writerow(lineOut)
 				logList.append(lineOut)
 			except:
-				logging.warning("CSV line "+ lineOut+" not written.")
+				logging.warning("CSV line "+ str(lineOut)+" not written.")
 	logging.debug("Points written to CSV "+filename+".")
 	logging.debug(logList)
+	
 
 def output_handler():
 	"""
 	Function takes desired filename, overwrite preference, and which file formats to export. 
 	Example: output_handler('myFilename', False, True, True)
-	Unless overwrite==True, timestamp (HMS) is appended to fileName before write functions are called.
+	Unless overwriteFiles=True, timestamp (HMS) is appended to fileName before write functions are called.
 	"""
 	global outputFilename
 	
@@ -171,13 +174,9 @@ def output_handler():
 		outputFilename = outputFilename+datetime.datetime.now().strftime("%H%M%S")
 		if writeToCSV==True:
 			write_csv_out(outputBin, outputFilename)
-		else: 
-			print('')
 		if writeToSQL==True:
 			make_table(outputFilename)
 			write_SQL_output(outputFilename)
-		else:
-			print('')
 	else: 
 		#This will delete old csv/table with same name, then write new ones.
 		if sql_table_exists(outputFilename)==True:
@@ -200,16 +199,17 @@ def voxelSelector(nbinLow, nbinHi, ebinLow, ebinHi, zbinLow, zbinHi):
 	Coordinates: X Y Z dimensions become E(easting) N(northing) Z(elevation).
 	"""
 
-	query = sql.SQL("""SELECT e, n, z, rgby FROM {} WHERE (n BETWEEN %(nmin)s and %(nmax)s) AND (e BETWEEN %(emin)s AND %(emax)s) AND (z BETWEEN %(zmin)s AND %(zmax)s);""").format(sql.Identifier(inputSQLtable))
+	query = sql.SQL("""SELECT E, N, Z, R, Gee, B, Y FROM {} WHERE (n BETWEEN %(nmin)s and %(nmax)s) AND (e BETWEEN %(emin)s AND %(emax)s) AND (z BETWEEN %(zmin)s AND %(zmax)s);""").format(sql.Identifier(inputSQLtable))
 	xCURSORx.execute(query, {'nmin':nbinLow, 'nmax':nbinHi, 'emin':ebinLow, 'emax':ebinHi, 'zmin': zbinLow, 'zmax': zbinHi})
 	collectedResults = xCURSORx.fetchall()
+	#This loop iterates through any points returned by query, appends the one with lowest z-value to outputBin.
 	if len(collectedResults) > 0:
 		logging.debug("Voxel with points\n" + str(collectedResults))
-		threshold = (-99999, -99999, 10000000000000, -99999)
+		threshold = (-99999, -99999, 10000000000000, -999, -999, -999, -999)
 		for result in collectedResults:
-			alpha, beta, charlie, delta = threshold
-			a, b, c, d = result
-			if c < charlie:
+			alpha, beta, charlie, delta, echo, foxtrot, golf = threshold
+			e, n, z, r, gee, b, y = result
+			if z < charlie:
 				threshold = result
 		logging.info("Low point " +str(threshold))	
 		outputBin.append(threshold)	
@@ -283,7 +283,7 @@ def makeTupleList(binSet, minAA, stepAA, maxAA):
 ##############################################################################
 # Main Program
 
-logging.basicConfig(filename='SQLtester.log',level=logging.DEBUG)
+logging.basicConfig(filename=inputSQLtable+'.log',level=logging.DEBUG)
 logging.info("...\n...\nStarting Voxelizer at "+datetime.datetime.now().strftime("%y-%m-%d %H:%M:%S"))
 
 conn= startCursor(database, user, pw)
