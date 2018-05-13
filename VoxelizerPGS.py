@@ -21,7 +21,7 @@ from psycopg2 import sql
 
 ########################################
 # User Input Variables
-binCount = 15
+binCount = 100
 binMax = abs(binCount)
 overwriteFiles=False
 inputSQLtable='importTest'

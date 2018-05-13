@@ -180,7 +180,7 @@ def table_exists(table_name):
 		);""").format(sql.Literal(table_name))
 	xCURSORx.execute(query)
 	extant = xCURSORx.fetchall()[0][0]
-	logging.debug("Table "+table_name+" exists = "+str(extant))
+	logging.debug("SQL table "+table_name+" exists = "+str(extant))
 	return extant
 
 def make_table(table_name):
@@ -211,7 +211,7 @@ def make_table(table_name):
 		#print("table time")
 		xCURSORx.execute(b)
 		loggin.info("No table present, new table created")
-		
+
 def writeOutput2SQL(table_name, selectedpoints):
 	"""
 	Uses first input to access SQL table, inserting a row for each tuple in the the second input, using psycopg2 cursor.  
@@ -264,7 +264,7 @@ with conn.cursor() as xCURSORx:
 
 
 	logging.info("Beginning parsing and selection")
-	#This loops thru all permutations of 3 dimensions, one 'bin' at a time
+	#This loops thru all permutations of 3 dimensions, one 'box' at a time
 	for n in nbinList:
 			nbinLow = n[0]
 			nbinHi = n[1]
