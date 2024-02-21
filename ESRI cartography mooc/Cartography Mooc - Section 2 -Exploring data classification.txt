@@ -1,0 +1,49 @@
+Cartography Mooc - Section 2: Exploring data classification
+
+download http://cartperiod.maps.arcgis.com/home/item.html?id=3e3a38dc4f1d48cab13eadd02fbb1230
+open Sec2Ex2_ExploringDataClassification.ppkx 
+
+SAVE Sec2Ex2_ExploringDataClassification_<yourfirstandlastname>
+
+turn on gray underlayer, look at how british nation grid warps the rest of the world
+
+look at attribute table
+
+---
+copy/paste new version of constituencies layer ?into same map? Uk election 2015
+rename layer> [samename]_natural breaks
+symbology> grad. colors. choose Turnout normalized by Electorate. Choose Jenks Natural breaks
+relabel by percentage: xx.x%
+
+in symbology, look at label view and histogram view
+experiment with different numbers of classes, how do they affect the data?
+
+---
+
+make a new copy of the natural breaks layer, name it _quantile
+how does this look different?
+
+recopy this layer into _equal interval
+use that version of symbology
+how does this look different
+
+do same for _geometric interval
+http://wiki.gis.com/wiki/index.php/Geometric_Interval_Classification
+how does this look different?
+
+repeat for _standard deviation
+
+do also _manual interval
+symbology> manual interval
+use histogram and experiment with sliders to find something good
+what aspect have you highlighted?
+
+----
+
+create unclassed version of this layer
+symbology> unclassed colors, turnout/electorate, label end points 50% and 82%
+play with handles to change colors
+good for highlighting similarity/difference of neigborhing regions, not specific data
+
+stretch: try this with some other data from the original file
+
